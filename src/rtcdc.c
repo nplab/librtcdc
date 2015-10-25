@@ -111,7 +111,7 @@ rtcdc_create_peer_connection(rtcdc_on_channel_cb on_channel,
     struct addrinfo hints, *servinfo;
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_INET;
-    
+
     if ((getaddrinfo(stun_server, NULL, &hints, &servinfo)) != 0)
       return NULL;
 
@@ -150,10 +150,8 @@ rtcdc_destroy_peer_connection(struct rtcdc_peer_connection *peer)
   if (peer->stun_server)
     free(peer->stun_server);
 
-  if (peer->channels) {
-    for (int i = 0; i < RTCDC_MAX_CHANNEL_NUM; ++i) {
-      rtcdc_destroy_data_channel(peer->channels[i]);
-    }
+  for (int i = 0; i < RTCDC_MAX_CHANNEL_NUM; ++i) {
+    rtcdc_destroy_data_channel(peer->channels[i]);
   }
 
   free(peer);
@@ -165,7 +163,7 @@ rtcdc_generate_offer_sdp(struct rtcdc_peer_connection *peer)
 {
   if (peer == NULL)
     return NULL;
-  
+
   if (peer->transport == NULL) {
     if (create_rtcdc_transport(peer, RTCDC_PEER_ROLE_CLIENT) < 0)
       return NULL;
@@ -248,7 +246,7 @@ rtcdc_create_data_channel(struct rtcdc_peer_connection *peer,
                           rtcdc_on_close_cb on_close,
                           void *user_data)
 {
-  if (peer == NULL || peer->transport == NULL || peer->channels == NULL)
+  if (peer == NULL || peer->transport == NULL)
     return NULL;
 
   struct rtcdc_transport *transport = peer->transport;
