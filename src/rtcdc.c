@@ -204,9 +204,16 @@ rtcdc_parse_offer_sdp(struct rtcdc_peer_connection *peer, const char *offer)
   int pos = 0;
   int remote_port = 0;
   for (int i = 0; lines && lines[i]; ++i) {
+
+#ifdef LEGACY_SDP
+    if (g_str_has_prefix(lines[i], "m=application")) {
+      char **columns = g_strsplit(lines[i], " ", 0);
+      remote_port = atoi(columns[3]);
+#else
     if (g_str_has_prefix(lines[i], "a=sctp-port:")) {
       char **columns = g_strsplit(lines[i], ":", 0);
       remote_port = atoi(columns[1]);
+#endif
       if (remote_port <= 0)
         return -1;
       peer->transport->sctp->remote_port = remote_port;
@@ -391,6 +398,7 @@ startup_thread(gpointer user_data)
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
     sconn.sconn_len = sizeof *sctp;
 #endif
+    fprintf(stderr, "usrsctp_connect ... \n");
     if (usrsctp_connect(sctp->sock, (struct sockaddr *)&sconn, sizeof sconn) < 0) {
 #ifdef DEBUG_SCTP
       fprintf(stderr, "SCTP connection failed\n");
