@@ -54,6 +54,18 @@ function errorHandler(err) {
 	console.error(err);
 }
 
+// ondatachannel handler
+pc.ondatachannel = function(event) {
+	if (event.channel.label == "control") {
+		dcControl = event.channel;
+		bindEventsControl(event.channel);
+	} else {
+		alert("error: unknown channel!");
+	}
+
+	console.log('incoming datachannel');
+};
+
 
 // handle local ice candidates
 pc.onicecandidate = function(event) {
@@ -67,50 +79,49 @@ pc.onicecandidate = function(event) {
 };
 
 
-// create offer SDP
-function createOfferSDP() {
-	dcControl = pc.createDataChannel('control');
-	pc.createOffer(function(offer) {
-		pc.setLocalDescription(offer);
-			//log(JSON.stringify(offer));
-			log(offer.sdp);
-			$("#offerSDPoffer").text(offer.sdp);
-	}, errorHandler, sdpConstraints);
-}
+function sdpCreateAnswer() {
+	sdpRemoteOfferBase64 = $("#sdpRemoteOfferBase64").val();
+	sdpRemoteOffer = window.atob(sdpRemoteOfferBase64);
 
-function createAnswerSDP() {
+	$("#sdpRemoteOffer").text(sdpRemoteOffer);
 
-	pc.ondatachannel = function(event) {
-		if (event.channel.label == "control") {
-			dcControl = event.channel;
-			bindEventsControl(event.channel);
-		} else {
-			alert("error: unknown channel!");
-		}
-
-		console.log('incoming datachannel');
-	};
-
-	remoteSDPoffer = $("#remoteSDPoffer").val();
-
-	log("remote SDP:\n" + remoteSDPoffer);
+	log("remote SDP:\n" + sdpRemoteOffer);
 
 	remoteSDPofferJson = {
 		"type" : "offer",
-		"sdp" : remoteSDPoffer
+		"sdp" : sdpRemoteOffer
 	}
 
-	remoteSDPofferJson = {
+	remoteSDPofferJson1 = {
 		"type" : "offer",
 		"sdp" : "v=0\r\no=- 9127031914041095863 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\na=msid-semantic: WMS\r\nm=application 9 DTLS/SCTP 5000\r\nc=IN IP4 0.0.0.0\r\na=ice-ufrag:h9AOxSCCPzu3CKdo\r\na=ice-pwd:aulNwsNzBgRZhitRzVcHhuhx\r\na=fingerprint:sha-256 9B:CA:3B:65:B1:CA:30:9A:EF:82:50:EA:FC:91:40:4E:42:50:05:E6:05:93:01:59:8C:38:B1:7E:FA:ED:A1:F3\r\na=setup:actpass\r\na=mid:data\r\na=sctpmap:5000 webrtc-datachannel 1024\r\n"
 	}
 
 	remoteSDPofferJson1 = {
 		"type" : "offer",
-		"sdp" : "v=0\r\no=- 4883178682354213 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\na=msid-semantic: WMS\r\nm=application 9 DTLS/SCTP 5000\r\nc=IN IP4 0.0.0.0\r\na=ice-ufrag:gC8q\r\na=ice-pwd:U11wQV956+oOfpLbL3C6RQ\r\na=fingerprint:sha-256 88:F2:FD:F1:15:2A:24:08:8B:16:64:88:42:BD:D6:E9:14:ED:8A:71:B6:C3:F0:4B:A6:80:42:D1:64:38:FD:0C\r\na=setup:active\r\na=mid:data\r\na=sctp-port:51455\r\n"
+		"sdp" : "v=0\r\no=- 4883178682354213 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\na=msid-semantic: WMS\r\nm=application 9 DTLS/SCTP 5000\r\nc=IN IP4 0.0.0.0\r\na=ice-ufrag:gC8q\r\na=ice-pwd:U11wQV956+oOfpLbL3C6RQ\r\na=fingerprint:sha-256 88:F2:FD:F1:15:2A:24:08:8B:16:64:88:42:BD:D6:E9:14:ED:8A:71:B6:C3:F0:4B:A6:80:42:D1:64:38:FD:0C\r\na=setup:actpass\r\na=mid:data\r\na=sctpmap:5000 webrtc-datachannel 1024\r\n"
 		//"sdp" : "v=0\r\no=- 9127031914041095863 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\na=msid-semantic: WMS\r\nm=application 9 DTLS/SCTP 5000\r\nc=IN IP4 0.0.0.0\r\na=ice-ufrag:h9AOxSCCPzu3CKdo\r\na=ice-pwd:aulNwsNzBgRZhitRzVcHhuhx\r\na=fingerprint:sha-256 88:F2:FD:F1:15:2A:24:08:8B:16:64:88:42:BD:D6:E9:14:ED:8A:71:B6:C3:F0:4B:A6:80:42:D1:64:38:FD:0C\r\na=setup:actpass\r\na=mid:data\r\na=sctpmap:5000 webrtc-datachannel 1024\r\n"
 	}
 
+	log(remoteSDPofferJson);
+
+	var sessionDescription = new SessionDescription(remoteSDPofferJson);
+
+	pc.setRemoteDescription(new SessionDescription(remoteSDPofferJson));
+
+	log("all fine!");
+
+	// generate our answer SDP and send it to peer
+	pc.createAnswer(function(answer) {
+		pc.setLocalDescription(answer);
+		log(answer);
+		$("#sdpLocalAnswer").text(answer.sdp);
+		$("#sdpLocalAnswerBase64").text(window.btoa(answer.sdp));
+	}, errorHandler);
+}
+
+
+function setIceCandidates() {
 	var iceCandidate1 = {
 		candidate : "candidate:10 1 UDP 2013266431 212.201.121.87 40619 typ host",
 		//sdpMid : "data",
@@ -142,24 +153,6 @@ function createAnswerSDP() {
 
 		pc.addIceCandidate(new IceCandidate(iceCandidate));
 	});
-
-
-
-	//var peerIceCandidate = new IceCandidate(IceCandidate1);
-	//pc.addIceCandidate(new IceCandidate(iceCandidate1));
-
-	log(remoteSDPofferJson);
-
-	//pc.setRemoteDescription(new SessionDescription(remoteSDPofferJson));
-
-	log("all fine!");
-
-	// generate our answer SDP and send it to peer
-	/*pc.createAnswer(function(answer) {
-		pc.setLocalDescription(answer);
-		log(answer);
-	}, errorHandler);
-	*/
 }
 
 // gather local ice candidates

@@ -48,44 +48,28 @@
 	<div class="container" id="complementary">
 		<h1>Schnittiger Name gesucht ...</h1>
 
-		<div class="row hidden" id="rowMessage">
-			<div class="col-sm-12" id="colMessage">
-			</div>
-		</div>
-
-		<h3>Local SDP</h3>
-		<div class="row">
-			<div class="col-sm-12">
-				<pre id="offerSDPoffer"></pre>
-				<button class="btn btn-success" onclick="">
-					<span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> toggle base64
-				</button>
-			</div>
-		</div>
-
 		<h3>Local ICE candidates</h3>
 		<div class="row">
 			<div class="col-sm-12">
 				<pre id="localICE"></pre>
-				<button class="btn btn-success" onclick="">
-					<span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> toggle base64
-				</button>
 			</div>
 		</div>
 
 		<h3>Create SDP answer</h3>
 		<div class="row">
 			<div class="col-sm-12">
-				<textarea class="form-control" rows="5" id="remoteSDPoffer"></textarea>
-				<button class="btn btn-success" onclick="createAnswerSDP();">
+				<textarea class="form-control" rows="5" id="sdpRemoteOfferBase64"></textarea>
+				<pre id="sdpRemoteOffer"></pre>
+				<button class="btn btn-success" onclick="sdpCreateAnswer();" style="margin: 5px 0px;">
+					<span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> create answer
+				</button>
+				<button class="btn btn-success" onclick="sdpCreateAnswer();" style="margin: 5px 0px;">
 					<span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> toggle base64
 				</button>
-				<pre id="remoteSDPanswer"></pre>
+				<pre id="sdpLocalAnswer"></pre>
+				<pre id="sdpLocalAnswerBase64"></pre>
 			</div>
 		</div>
-
-
-
 
 		<div class="row hidden" id="rowChat">
 			<div class="col-sm-12">

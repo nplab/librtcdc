@@ -66,7 +66,7 @@ pc.onicecandidate = function(event) {
 
 
 // create offer SDP
-function createOfferSDP() {
+function createSDPOffer() {
 	dcControl = pc.createDataChannel('control');
 	pc.createOffer(function(offer) {
 		pc.setLocalDescription(offer);
