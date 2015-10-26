@@ -55,7 +55,7 @@ generate_local_sdp(struct rtcdc_transport *transport, int client)
   pos += sprintf(buf + pos, "a=fingerprint:sha-256 %s\r\n", ctx->fingerprint);
 
   if (client)
-    pos += sprintf(buf + pos, "a=setup:active\r\n");
+    pos += sprintf(buf + pos, "a=setup:actpass\r\n");
   else
     pos += sprintf(buf + pos, "a=setup:passive\r\n");
 
