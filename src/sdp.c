@@ -38,7 +38,12 @@ generate_local_sdp(struct rtcdc_transport *transport, int client)
     "s=-\r\n"
     "t=0 0\r\n"
     "a=msid-semantic: WMS\r\n");
+
+#ifdef LEGACY_SDP
+  pos += sprintf(buf + pos, "m=application 9 DTLS/SCTP 5000\r\n");
+#else
   pos += sprintf(buf + pos, "m=application 1 UDP/DTLS/SCTP webrtc-datachannel\r\n");
+#endif
   pos += sprintf(buf + pos, "c=IN IP4 0.0.0.0\r\n");
 
   gchar *lsdp = nice_agent_generate_local_sdp(ice->agent);
@@ -60,7 +65,12 @@ generate_local_sdp(struct rtcdc_transport *transport, int client)
     pos += sprintf(buf + pos, "a=setup:passive\r\n");
 
   pos += sprintf(buf + pos, "a=mid:data\r\n");
+
+#ifdef LEGACY_SDP
+  pos += sprintf(buf + pos, "a=sctpmap:%d webrtc-datachannel 1024\r\n", sctp->local_port);
+#else
   pos += sprintf(buf + pos, "a=sctp-port:%d\r\n", sctp->local_port);
+#endif
 
   return strndup(buf, pos);
 }
