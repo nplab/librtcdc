@@ -39,10 +39,6 @@ console.log(iceServer);
 var pc = new PeerConnection(iceServer);
 var dcControl = {};
 var dcPassive = {};
-var offerer;
-var signalingInProgress = false;
-var signalingId;
-
 
 function log(string) {
 	console.log(string);
@@ -52,6 +48,7 @@ function log(string) {
 
 // generic error handler
 function errorHandler(err) {
+	log("error!");
 	console.error(err);
 }
 
@@ -84,6 +81,9 @@ function sdpCreateAnswer() {
 	sdpRemoteOfferBase64 = $("#sdpRemoteOfferBase64").val();
 	sdpRemoteOffer = window.atob(sdpRemoteOfferBase64);
 
+	dcPassive = pc.createDataChannel('dcPassive');
+	bindEventsControl(dcPassive);
+
 	$("#sdpRemoteOffer").text(sdpRemoteOffer);
 
 	log("remote SDP:\n" + sdpRemoteOffer);
@@ -94,30 +94,30 @@ function sdpCreateAnswer() {
 	}
 
 	// working backup
-	remoteSDPofferJson1 = {
+	remoteSDPofferJson = {
 		"type" : "offer",
 		"sdp" : "v=0\r\no=- 9127031914041095863 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\na=msid-semantic: WMS\r\nm=application 9 DTLS/SCTP 5000\r\nc=IN IP4 0.0.0.0\r\na=ice-ufrag:h9AOxSCCPzu3CKdo\r\na=ice-pwd:aulNwsNzBgRZhitRzVcHhuhx\r\na=fingerprint:sha-256 9B:CA:3B:65:B1:CA:30:9A:EF:82:50:EA:FC:91:40:4E:42:50:05:E6:05:93:01:59:8C:38:B1:7E:FA:ED:A1:F3\r\na=setup:actpass\r\na=mid:data\r\na=sctpmap:5000 webrtc-datachannel 1024\r\n"
 	}
 
 	log(remoteSDPofferJson);
-	var sessionDescription = new SessionDescription(remoteSDPofferJson);
+	var sessionDescription = new SessionDescription(remoteSDPofferJson, errorHandler);
 	log(sessionDescription);
-	pc.setRemoteDescription(sessionDescription);
 
-	log("all fine!");
+	pc.setRemoteDescription(sessionDescription,function() {
+		pc.createAnswer(function(answer) {
+			pc.setLocalDescription(answer);
+			log(answer);
+			$("#sdpLocalAnswer").text(answer.sdp);
+			$("#sdpLocalAnswerBase64").text(window.btoa(answer.sdp));
+			},
+		errorHandler)},
+	errorHandler);
 
-	dcPassive = pc.createDataChannel('dcPassive');
-	bindEventsControl(dcPassive);
 
 	// generate our answer SDP and send it to peer
-	pc.createAnswer(function(answer) {
-		pc.setLocalDescription(answer);
-		log(answer);
-		$("#sdpLocalAnswer").text(answer.sdp);
-		$("#sdpLocalAnswerBase64").text(window.btoa(answer.sdp));
-	}, errorHandler);
 
-	setIceCandidates();
+
+	//setIceCandidates();
 }
 
 
