@@ -223,7 +223,8 @@ rtcdc_parse_offer_sdp(struct rtcdc_peer_connection *peer, const char *offer)
       if (strcmp(columns[1], "active") == 0 && peer->role == RTCDC_PEER_ROLE_CLIENT) {
         peer->role = RTCDC_PEER_ROLE_SERVER;
       } else if (strcmp(columns[1], "passive") == 0 && peer->role == RTCDC_PEER_ROLE_SERVER) {
-        peer->role = RTCDC_PEER_ROLE_CLIENT;
+        //peer->role = RTCDC_PEER_ROLE_CLIENT;
+        peer->role = RTCDC_PEER_ROLE_SERVER;
       } else { // actpass
         // nothing to do
       }
@@ -424,6 +425,7 @@ startup_thread(gpointer user_data)
 #endif
     usrsctp_listen(sctp->sock, 1);
     socklen_t len = sizeof sconn;
+    fprintf(stderr, "usrsctp_accept ... \n");
     struct socket *s = usrsctp_accept(sctp->sock, (struct sockaddr *)&sconn, &len);
     if (s) {
 #ifdef DEBUG_SCTP

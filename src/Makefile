@@ -30,6 +30,7 @@ $(TARGET): $(OBJECTS)
 
 clean:
 	rm -f *.o *.so *.dylib *.a example
+
 install:
-        cp librtcdc.so /usr/lib
-        cp librtcdc.so /usr/local/lib
+	cp librtcdc.so /usr/lib
+	cp librtcdc.so /usr/local/lib
