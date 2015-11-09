@@ -50,7 +50,7 @@ print ('enter remote candidate sdp:')
 
 while True:
     rcand = input('> ')
-    if peer.parse_candidates(rcand) > 0:
+    if peer.parse_candidates(rcand.encode(encoding='utf_8', errors='strict')) > 0:
         break
     print ('invalid remote candidate sdp')
     print ('enter remote candidate sdp:')
