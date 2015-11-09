@@ -5,11 +5,11 @@ var iceServer = {
 	iceServers : [
 	{
 		urls : 'turn:turn1.nplab.de:3478',
-		username: 'tiny',
+		username : 'tiny',
 		credential : 'turner'
 	}, {
 		urls : 'turn:turn2.nplab.de:3478',
-		username: 'tiny',
+		username : 'tiny',
 		credential : 'turner'
 	}, {
 		urls : 'stun:stun.l.google.com:19302'
