@@ -26,14 +26,14 @@ def on_message(channel, datatype, data):
     channel.send(pyrtcdc.DATATYPE_STRING, 'hi')
 
 
-peer = pyrtcdc.PeerConnection(on_channel, on_candidate, on_connect, stun_server='stun.services.mozilla.com')
+peer = pyrtcdc.PeerConnection(on_channel, on_candidate, on_connect, stun_server='stun.services.mozilla.com'.encode(encoding='utf_8', errors='strict'))
 
 offer = peer.generate_offer()
 print ('base64 encoded local offer sdp:\n%s\n' %(base64.b64encode(offer)))
 print ('enter base64 encoded remote offer sdp:')
 
 while True:
-    roffer64 = raw_input('> ')
+    roffer64 = input('> ')
     roffer = base64.b64decode(roffer64)
     print ('remote offer sdp:\n%s' %(roffer))
     res = peer.parse_offer(roffer)
@@ -49,7 +49,7 @@ while True:
 print ('enter remote candidate sdp:')
 
 while True:
-    rcand = raw_input('> ')
+    rcand = input('> ')
     if peer.parse_candidates(rcand) > 0:
         break
     print ('invalid remote candidate sdp')
