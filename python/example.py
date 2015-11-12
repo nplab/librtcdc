@@ -7,9 +7,7 @@ import random
 import json
 import pdb
 
-''' 
-    URL to Firebase db
-'''
+#URL to Firebase db
 base_url = "https://sniehus-webrtc-test.firebaseio.com"
 
 def getRandom():
@@ -29,10 +27,8 @@ def writeToFirebase(type, data):
     elif(type == "answer"):
         body = '{"answer": "'+ data.decode('utf_8') +'"}'
         url = base_url + "/" + str(id) + "/" + type + ".json"    
-        response = requests.put(url, data=body)
-    else:
-        body = {'N_A': data}    
-    print(str(url) + " " + str(body) + " " + str(response))
+        response = requests.put(url, data=body)    
+    #print(str(url) + " " + str(body) + " " + str(response))
 
 def readFromFirebase(type):
     returnVal = ""    
@@ -88,23 +84,24 @@ def on_message(channel, datatype, data):
 peertype = input('[O]fferer / [A]nswerer: ')
 if(peertype.upper() == "A"):
     id = input('Remote ID: ')
+print("Gathering ICE candidates...")
 peer = pyrtcdc.PeerConnection(on_channel, on_candidate, on_connect, stun_server='stun.services.mozilla.com'.encode(encoding='utf_8', errors='strict'))
-
+print("Gathering done!")
 if(peertype.upper() == "O"):
+    print("Generating offer")    
     writeToFirebase("offer", base64.b64encode(peer.generate_offer()))
+    print("Offer generated")    
 elif(peertype.upper() == "A"):
+    print("Generating answer")
     writeToFirebase("answer", base64.b64encode(peer.generate_offer()))
+    print("Answer generated")    
     
-#print ('base64 encoded local offer sdp:\n%s\n' %(base64.b64encode(offer)))
-#print ('enter base64 encoded remote offer sdp:')
 
 while True:
     if(peertype.upper() == "O"):
         roffer = readFromFirebase("answer")
     elif(peertype.upper() == "A"):
         roffer = readFromFirebase("offer")
-    #roffer64 = input('Remote: > ')
-    #roffer = base64.b64decode(roffer64)
     print ('remote offer sdp:\n%s' %(roffer))
     res = peer.parse_offer(roffer)
 
@@ -112,10 +109,6 @@ while True:
         offer = peer.generate_offer()
         print ('new base64 encoded local offer sdp:\n%s\n' %(base64.b64encode(offer)))
         break
-
-    print ('invalid remote offer sdp')
-    print ('enter base64 encoded remote offer sdp:')
-
 
 if(peertype.upper() == "O"):
     readIceCandidates("ice-candidates-answerer")
