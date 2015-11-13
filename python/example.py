@@ -6,6 +6,8 @@ import requests
 import random
 import json
 import pdb
+import sys
+import optparse
 
 #URL to Firebase db
 base_url = "https://sniehus-webrtc-test.firebaseio.com"
@@ -13,7 +15,12 @@ base_url = "https://sniehus-webrtc-test.firebaseio.com"
 def getRandom():
     return random.randint(1000,9999)
 
-id = getRandom();
+def deleteOldData():
+    print("Deleting old data..")
+    url = base_url + "/" + str(id) + ".json"
+    response = requests.delete(url)
+    print("Old data deleted")
+     
 
 def writeToFirebase(type, data):
     if(type.startswith("ice-candidates")):
@@ -34,7 +41,7 @@ def readFromFirebase(type):
     returnVal = ""    
     if(type == "offer"):
         url = base_url + "/" + str(id) + "/" + type + ".json"
-        response = requests.get(url)
+        response = requests.get(url)        
         jsonVal = json.loads(response.text)
         returnVal = base64.b64decode(jsonVal['offer'])
     elif(type == "answer"):
@@ -81,20 +88,49 @@ def on_message(channel, datatype, data):
     print ('received data from channel %s: %s\n' %(channel.label, data))
     channel.send(pyrtcdc.DATATYPE_STRING, 'hi')
 
-peertype = input('[O]fferer / [A]nswerer: ')
-if(peertype.upper() == "A"):
-    id = input('Remote ID: ')
-print("Gathering ICE candidates...")
-peer = pyrtcdc.PeerConnection(on_channel, on_candidate, on_connect, stun_server='stun.services.mozilla.com'.encode(encoding='utf_8', errors='strict'))
-print("Gathering done!")
+
+parser = optparse.OptionParser()
+parser.add_option("-r", "--role", 
+                  help="Sets this instance to be a answerer",
+                  type="choice",
+                  choices=['answerer', 'offerer'],
+                  action="store",
+                  dest="role")
+parser.add_option("-i", "--remoteid",
+                  help="Sets the id ",
+                  type="int",
+                  action="store",
+                  dest="id")
+(options, args) = parser.parse_args()
+if(options.role is None):
+    parser.error("Role not set\nSet it with -r [answerer/offerer]")
+elif(options.role == "answerer"):
+    if(options.id is None):
+        parser.error("Answerer MUST set id")
+    else:
+        id = options.id
+        peertype = "A"
+elif(options.role == "offerer"):
+    if(options.id is None):
+        id = getRandom();
+        peertype = "O"
+    else:
+        id = options.id
+        peertype = "O"
+
+print('Local ID: ' + str(id))
+print('Local role: ' + str(peertype))
 if(peertype.upper() == "O"):
-    print("Generating offer")    
+    deleteOldData()
+peer = pyrtcdc.PeerConnection(on_channel, on_candidate, on_connect, stun_server='stun.services.mozilla.com'.encode(encoding='utf_8', errors='strict'))
+if(peertype.upper() == "O"):    
+    print("Generating offer and gathering ICE candidates..")    
     writeToFirebase("offer", base64.b64encode(peer.generate_offer()))
-    print("Offer generated")    
+    print("Offer generated and ICE candidates gathered")    
 elif(peertype.upper() == "A"):
-    print("Generating answer")
+    print("Generating answer and gathering ICE candidates..")
     writeToFirebase("answer", base64.b64encode(peer.generate_offer()))
-    print("Answer generated")    
+    print("Answer generated and ICE candidates gathered")    
     
 
 while True:
@@ -106,8 +142,6 @@ while True:
     res = peer.parse_offer(roffer)
 
     if res >= 0:
-        offer = peer.generate_offer()
-        print ('new base64 encoded local offer sdp:\n%s\n' %(base64.b64encode(offer)))
         break
 
 if(peertype.upper() == "O"):
